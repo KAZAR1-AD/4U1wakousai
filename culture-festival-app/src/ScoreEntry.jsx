@@ -1,46 +1,44 @@
 // src/ScoreEntry.jsx
-import { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from './lib/supabase';
 
 export default function ScoreEntry() {
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token');
+  const navigate = useNavigate();
   
-  const [isValidToken, setIsValidToken] = useState(false);
+  const [isValid, setIsValid] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [playerName, setPlayerName] = useState('');
   const [score, setScore] = useState('');
-  const [isSubmitted, setIsSubmitted] = useState(false);
 
   useEffect(() => {
-    checkToken();
+    const validateToken = async () => {
+      if (!token) {
+        setIsLoading(false);
+        return;
+      }
+
+      // トークンがデータベースに存在し（最新）、かつ現在時刻が有効期限内かチェック
+      const { data, error } = await supabase
+        .from('qr_tokens')
+        .select('*')
+        .eq('token', token)
+        .gte('expires_at', new Date().toISOString())
+        .single();
+
+      if (data && !error) {
+        setIsValid(true);
+      }
+      setIsLoading(false);
+    };
+
+    validateToken();
   }, [token]);
 
-  // アクセスしてきたURLのトークンが有効（5分以内）かチェックする
-  const checkToken = async () => {
-    if (!token) {
-      setIsLoading(false);
-      return;
-    }
-
-    const { data } = await supabase
-      .from('qr_tokens')
-      .select('*')
-      .eq('token', token)
-      .single();
-
-    if (data) {
-      const now = new Date();
-      const expiresAt = new Date(data.expires_at);
-      if (now <= expiresAt) {
-        setIsValidToken(true); // 期限内なら入力画面を表示
-      }
-    }
-    setIsLoading(false);
-  };
-
-  const submitScore = async () => {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     if (!playerName || !score) return;
 
     const { error } = await supabase
@@ -48,65 +46,53 @@ export default function ScoreEntry() {
       .insert([{ player_name: playerName, score: parseInt(score, 10) }]);
 
     if (!error) {
-      setIsSubmitted(true);
+      alert('スコアを登録しました！');
+      navigate('/darts');
     } else {
-      alert('登録に失敗しました。');
+      alert('エラーが発生しました: ' + error.message);
     }
   };
 
-  if (isLoading) return <div style={{ padding: '20px' }}>確認中...</div>;
-  
-  if (!isValidToken && !isSubmitted) {
-    return (
-      <div style={{ padding: '20px', textAlign: 'center' }}>
-        <h3 style={{ color: 'red' }}>無効または期限切れのQRコードです。</h3>
-        <p>モニターに表示されている新しいQRコードを再度読み取ってください。</p>
-      </div>
-    );
-  }
+  if (isLoading) return <div style={{ padding: '20px', textAlign: 'center' }}>確認中...</div>;
 
-  if (isSubmitted) {
+  // 期限切れ、または古いQRコード（データベースから削除済み）の場合は入力画面をブロックする
+  if (!isValid) {
     return (
-      <div style={{ padding: '20px', textAlign: 'center' }}>
-        <h3 style={{ color: 'green' }}>スコアの登録が完了しました！</h3>
-        <p>モニターのランキング画面を確認してください。</p>
+      <div style={{ padding: '50px', textAlign: 'center', color: '#d32f2f' }}>
+        <h2>無効なQRコードです</h2>
+        <p>このQRコードは期限切れ、または古いコードです。<br/>受付画面にある最新のQRコードを再度読み取ってください。</p>
       </div>
     );
   }
 
   return (
-    <div style={{ padding: '20px', maxWidth: '400px', margin: '0 auto', fontFamily: 'sans-serif' }}>
-      <h2 style={{ textAlign: 'center' }}>ダーツ スコア登録</h2>
-      
-      <div style={{ marginBottom: '20px' }}>
-        <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>プレイヤー名 (ニックネーム)</label>
-        <input 
-          type="text" 
-          value={playerName}
-          onChange={(e) => setPlayerName(e.target.value)}
-          placeholder="例: たろう"
-          style={{ width: '100%', padding: '12px', boxSizing: 'border-box', borderRadius: '4px', border: '1px solid #ccc' }}
-        />
-      </div>
-      
-      <div style={{ marginBottom: '20px' }}>
-        <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>スコア</label>
-        <input 
-          type="number" 
-          value={score}
-          onChange={(e) => setScore(e.target.value)}
-          placeholder="例: 450"
-          style={{ width: '100%', padding: '12px', boxSizing: 'border-box', borderRadius: '4px', border: '1px solid #ccc' }}
-        />
-      </div>
-      
-      <button 
-        onClick={submitScore}
-        disabled={!playerName || !score}
-        style={{ width: '100%', padding: '15px', background: (!playerName || !score) ? '#ccc' : '#1976d2', color: 'white', border: 'none', borderRadius: '4px', fontSize: '1.2rem', cursor: 'pointer' }}
-      >
-        登録する
-      </button>
+    <div style={{ padding: '30px', maxWidth: '400px', margin: '0 auto', fontFamily: 'sans-serif' }}>
+      <h2 style={{ textAlign: 'center', marginBottom: '20px' }}>スコア入力</h2>
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+        <div>
+          <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>プレイヤー名</label>
+          <input 
+            type="text" 
+            value={playerName} 
+            onChange={(e) => setPlayerName(e.target.value)} 
+            style={{ width: '100%', padding: '10px', boxSizing: 'border-box', fontSize: '1.1rem' }} 
+            required 
+          />
+        </div>
+        <div>
+          <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>スコア</label>
+          <input 
+            type="number" 
+            value={score} 
+            onChange={(e) => setScore(e.target.value)} 
+            style={{ width: '100%', padding: '10px', boxSizing: 'border-box', fontSize: '1.1rem' }} 
+            required 
+          />
+        </div>
+        <button type="submit" style={{ padding: '15px', background: '#1976d2', color: 'white', border: 'none', borderRadius: '8px', fontSize: '1.2rem', cursor: 'pointer', marginTop: '10px' }}>
+          登録する
+        </button>
+      </form>
     </div>
   );
 }

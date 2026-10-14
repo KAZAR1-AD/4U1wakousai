@@ -1,6 +1,4 @@
 // src/DartsQR.jsx
-// ダーツブースの受付（iPadやモニター等）で表示するためのQRコード専用画面です。
-
 import { useEffect, useState } from 'react';
 import { supabase } from './lib/supabase';
 import { QRCodeCanvas } from 'qrcode.react';
@@ -12,17 +10,21 @@ export default function DartsQR() {
   useEffect(() => {
     generateQrToken();
 
-    // 5分（300000ミリ秒）ごとにQRコードを更新
+    // 3分（180000ミリ秒）ごとにQRコードを更新する
     const interval = setInterval(() => {
       generateQrToken();
-    }, 300000);
+    }, 180000);
 
     return () => clearInterval(interval);
   }, []);
 
   const generateQrToken = async () => {
     try {
-      const expiresAt = new Date(Date.now() + 5 * 60000).toISOString();
+      // 過去のトークンをすべて削除し、最新のQRコードのみを有効にする
+      await supabase.from('qr_tokens').delete().not('token', 'is', null);
+
+      // 新しいトークンの有効期限を3分後に設定
+      const expiresAt = new Date(Date.now() + 3 * 60000).toISOString();
       const { data, error } = await supabase
         .from('qr_tokens')
         .insert([{ expires_at: expiresAt }])
@@ -50,7 +52,9 @@ export default function DartsQR() {
   return (
     <div style={{ textAlign: 'center', padding: '50px', background: '#f5f5f5', borderRadius: '12px', maxWidth: '500px', margin: '40px auto' }}>
       <h2>スコア登録用QRコード</h2>
-      <p style={{ color: '#d32f2f', fontWeight: 'bold', marginBottom: '20px' }}>※不正防止のため5分ごとに自動更新されます</p>
+      <p style={{ color: '#d32f2f', fontWeight: 'bold', marginBottom: '20px' }}>
+        ※不正防止のため3分ごとに自動更新され、過去のQRコードは無効になります
+      </p>
       
       <div style={{ background: 'white', display: 'inline-block', padding: '30px', borderRadius: '12px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
         {qrUrl ? (
