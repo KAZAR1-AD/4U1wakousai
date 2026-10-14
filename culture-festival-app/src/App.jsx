@@ -10,6 +10,7 @@ import Darts from './Darts';
 import ScoreEntry from './ScoreEntry';
 import Admin from './Admin';
 import Login from './Login';
+import DartsQR from './DartsQR';
 
 export default function App() {
   const [userLevel, setUserLevel] = useState(1); // 1:未ログイン, 2:スタッフ, 3:管理者
@@ -61,6 +62,7 @@ export default function App() {
         <nav style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <ul style={{ display: 'flex', gap: '20px', listStyle: 'none', padding: 0 }}>
             <li><Link to="/darts">ダーツランキング (Lv1~)</Link></li>
+            <li><Link to="/darts-qr">受付QR表示 (Lv1~)</Link></li>
             {userLevel >= 2 && <li><Link to="/register">レジ画面 (Lv2~)</Link></li>}
             {userLevel >= 2 && <li><Link to="/kitchen">調理場画面 (Lv2~)</Link></li>}
             {userLevel >= 2 && <li><Link to="/admin">管理画面 (Lv2~)</Link></li>}
@@ -81,6 +83,7 @@ export default function App() {
           
           {/* レベル1: 誰でもアクセス可能 */}
           <Route path="/darts" element={<Darts />} />
+          <Route path="/darts-qr" element={<DartsQR />} />
           <Route path="/score-entry" element={<ScoreEntry />} />
           
           {/* レベル2以上: スタッフと管理者のみアクセス可能。未ログインは /login へ弾く */}
