@@ -47,32 +47,31 @@ export default function App() {
     <Router>
       <div style={{ padding: '20px', fontFamily: 'sans-serif' }}>
         
-        <nav style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          {/* ログイン済み (Lv2以上) のスタッフ・管理者にのみリンクメニューを表示 */}
-          {userLevel >= 2 ? (
-            <ul style={{ display: 'flex', gap: '20px', listStyle: 'none', padding: 0, margin: 0 }}>
-              <li><Link to="/darts">ダーツランキング</Link></li>
-              <li><Link to="/darts-qr">受付QR表示</Link></li>
-              <li><Link to="/register">レジ画面</Link></li>
-              <li><Link to="/kitchen">調理場画面</Link></li>
-              <li><Link to="/admin">管理画面</Link></li>
-            </ul>
-          ) : (
-            <div /> /* ゲストの場合はメニューを非表示にし、左側を空ける */
-          )}
-          
-          <div>
-            {userLevel === 1 ? (
-              <Link to="/login" style={{ padding: '8px', background: '#ccc', textDecoration: 'none', color: 'black', borderRadius: '4px' }}>スタッフログイン</Link>
-            ) : (
-              <button onClick={handleLogout} style={{ padding: '8px', cursor: 'pointer', borderRadius: '4px' }}>ログアウト (Lv{userLevel})</button>
-            )}
-          </div>
-        </nav>
-        <hr style={{ margin: '10px 0 20px 0' }} />
+        {/* ログイン済み (Lv2以上) の時だけナビゲーション全体を表示 */}
+        {userLevel >= 2 && (
+          <>
+            <nav style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <ul style={{ display: 'flex', gap: '20px', listStyle: 'none', padding: 0, margin: 0 }}>
+                <li><Link to="/darts">ダーツランキング</Link></li>
+                <li><Link to="/darts-qr">受付QR表示</Link></li>
+                <li><Link to="/register">レジ画面</Link></li>
+                <li><Link to="/kitchen">調理場画面</Link></li>
+                <li><Link to="/admin">管理画面</Link></li>
+              </ul>
+              
+              <div>
+                <button onClick={handleLogout} style={{ padding: '8px', cursor: 'pointer', borderRadius: '4px' }}>
+                  ログアウト (Lv{userLevel})
+                </button>
+              </div>
+            </nav>
+            <hr style={{ margin: '10px 0 20px 0' }} />
+          </>
+        )}
         
         <Routes>
           <Route path="/" element={<Navigate to="/darts" replace />} />
+          {/* ログイン画面のルート自体は残しておきます */}
           <Route path="/login" element={userLevel > 1 ? <Navigate to="/register" replace /> : <Login />} />
           
           <Route path="/darts" element={<Darts />} />
