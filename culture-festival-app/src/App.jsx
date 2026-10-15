@@ -30,7 +30,7 @@ export default function App() {
   const determineUserLevel = (user) => {
     if (!user) {
       setUserLevel(1);
-    } else if (user.email === 'x23u021@mitsuhashi.ac.jp' || user.email === 'x23u035@mitsuhashi.ac.jp') { 
+    } else if (user.email === 'kimura@fes.com' || user.email === 'teacher@fes.com') { 
       setUserLevel(3);
     } else {
       setUserLevel(2);
@@ -45,33 +45,32 @@ export default function App() {
 
   return (
     <Router>
-      <div style={{ padding: '20px', fontFamily: 'sans-serif' }}>
+      <div style={{ padding: '10px', maxWidth: '1200px', margin: '0 auto', fontFamily: 'sans-serif' }}>
         
-        {/* ログイン済み (Lv2以上) の時だけナビゲーション全体を表示 */}
         {userLevel >= 2 && (
           <>
-            <nav style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <ul style={{ display: 'flex', gap: '20px', listStyle: 'none', padding: 0, margin: 0 }}>
-                <li><Link to="/darts">ダーツランキング</Link></li>
-                <li><Link to="/darts-qr">受付QR表示</Link></li>
-                <li><Link to="/register">レジ画面</Link></li>
-                <li><Link to="/kitchen">調理場画面</Link></li>
-                <li><Link to="/admin">管理画面</Link></li>
+            {/* ★ flexWrap: 'wrap' を追加してメニューがスマホではみ出さないように設定 */}
+            <nav style={{ display: 'flex', flexWrap: 'wrap', gap: '15px', justifyContent: 'space-between', alignItems: 'center' }}>
+              <ul style={{ display: 'flex', flexWrap: 'wrap', gap: '15px', listStyle: 'none', padding: 0, margin: 0 }}>
+                <li><Link to="/darts" style={{ textDecoration: 'none', color: '#1976d2', fontWeight: 'bold' }}>ダーツランキング</Link></li>
+                <li><Link to="/darts-qr" style={{ textDecoration: 'none', color: '#1976d2', fontWeight: 'bold' }}>受付QR表示</Link></li>
+                <li><Link to="/register" style={{ textDecoration: 'none', color: '#1976d2', fontWeight: 'bold' }}>レジ画面</Link></li>
+                <li><Link to="/kitchen" style={{ textDecoration: 'none', color: '#1976d2', fontWeight: 'bold' }}>調理場画面</Link></li>
+                <li><Link to="/admin" style={{ textDecoration: 'none', color: '#1976d2', fontWeight: 'bold' }}>管理画面</Link></li>
               </ul>
               
               <div>
-                <button onClick={handleLogout} style={{ padding: '8px', cursor: 'pointer', borderRadius: '4px' }}>
+                <button onClick={handleLogout} style={{ padding: '8px 12px', background: '#333', color: 'white', cursor: 'pointer', border: 'none', borderRadius: '4px' }}>
                   ログアウト (Lv{userLevel})
                 </button>
               </div>
             </nav>
-            <hr style={{ margin: '10px 0 20px 0' }} />
+            <hr style={{ margin: '15px 0' }} />
           </>
         )}
         
         <Routes>
           <Route path="/" element={<Navigate to="/darts" replace />} />
-          {/* ログイン画面のルート自体は残しておきます */}
           <Route path="/login" element={userLevel > 1 ? <Navigate to="/register" replace /> : <Login />} />
           
           <Route path="/darts" element={<Darts />} />
