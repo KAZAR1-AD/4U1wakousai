@@ -9,6 +9,7 @@ import ScoreEntry from './ScoreEntry';
 import Admin from './Admin';
 import Login from './Login';
 import DartsQR from './DartsQR';
+import './App.css';
 
 export default function App() {
   const [userLevel, setUserLevel] = useState(1);

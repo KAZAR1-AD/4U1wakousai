@@ -56,61 +56,61 @@ export default function Kitchen() {
     <div style={{ fontFamily: 'sans-serif' }}>
       <h2 style={{ textAlign: 'center', marginBottom: '20px' }}>👨‍🍳 調理場 KDS</h2>
       
-      {/* ★ flexWrap: 'wrap' を追加して画面が狭いと折り返すように設定 */}
-      <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
+      {/* ★ CSSで設定した app-container を使用 */}
+      <div className="app-container">
         
-        {/* 左側：フード専用列 (flex-basisを300pxに設定) */}
-        <div style={{ flex: '1 1 300px', background: '#ffebee', padding: '15px', borderRadius: '12px' }}>
+        {/* 左側：フード専用列 */}
+        <div className="kitchen-col" style={{ background: '#ffebee', padding: '20px', borderRadius: '12px' }}>
           <h3 style={{ borderBottom: '3px solid #d32f2f', paddingBottom: '10px' }}>
-            🍔 フード <span style={{ fontSize: '0.9rem', color: '#555', fontWeight: 'normal' }}>([1]で完了)</span>
+            🍔 フード <span style={{ fontSize: '1rem', color: '#555', fontWeight: 'normal' }}>([1]で完了)</span>
           </h3>
           {foodQueue.length === 0 && <p>注文はありません</p>}
           {foodQueue.map((order, index) => (
             <div key={`food-${order.id}`} style={{ background: index === 0 ? '#ffcdd2' : 'white', padding: '15px', marginBottom: '15px', borderRadius: '8px', border: index === 0 ? '3px solid #d32f2f' : '1px solid #ccc', boxShadow: '0 2px 5px rgba(0,0,0,0.1)' }}>
               
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', color: '#555', flexWrap: 'wrap', gap: '5px' }}>
-                <strong style={{ minWidth: '60px', fontSize: '0.9rem' }}>{index === 0 ? '▶ 最優先' : ''}</strong>
-                <span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#d32f2f', border: '2px solid #d32f2f', padding: '2px 8px', borderRadius: '4px', background: '#fff' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', color: '#555' }}>
+                <strong style={{ minWidth: '70px' }}>{index === 0 ? '▶ 最優先' : ''}</strong>
+                <span style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#d32f2f', border: '2px solid #d32f2f', padding: '2px 10px', borderRadius: '4px', background: '#fff' }}>
                   No: {order.ticket_number || 'なし'}
                 </span>
-                <span style={{ fontSize: '0.9rem' }}>{new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                <span>{new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
               </div>
               
-              <ul style={{ fontSize: '1.2rem', fontWeight: 'bold', listStyle: 'none', padding: 0 }}>
+              <ul style={{ fontSize: '1.3rem', fontWeight: 'bold', listStyle: 'none', padding: 0 }}>
                 {order.items.filter(item => item.category === 'フード').map((item, i) => (
                   <li key={i} style={{ marginBottom: '8px' }}>{item.name} <span style={{ color: '#d32f2f', marginLeft: '10px' }}>× {item.quantity}</span></li>
                 ))}
               </ul>
-              <button onClick={() => completeFood(order.id)} style={{ width: '100%', padding: '12px', background: '#d32f2f', color: 'white', border: 'none', borderRadius: '6px', fontSize: '1.1rem', cursor: 'pointer', marginTop: '10px' }}>
+              <button onClick={() => completeFood(order.id)} style={{ width: '100%', padding: '12px', background: '#d32f2f', color: 'white', border: 'none', borderRadius: '6px', fontSize: '1.2rem', cursor: 'pointer', marginTop: '10px' }}>
                 提供完了 (1)
               </button>
             </div>
           ))}
         </div>
 
-        {/* 右側：ドリンク専用列 (flex-basisを300pxに設定) */}
-        <div style={{ flex: '1 1 300px', background: '#e3f2fd', padding: '15px', borderRadius: '12px' }}>
+        {/* 右側：ドリンク専用列 */}
+        <div className="kitchen-col" style={{ background: '#e3f2fd', padding: '20px', borderRadius: '12px' }}>
           <h3 style={{ borderBottom: '3px solid #1976d2', paddingBottom: '10px' }}>
-            🥤 ドリンク <span style={{ fontSize: '0.9rem', color: '#555', fontWeight: 'normal' }}>([2]で完了)</span>
+            🥤 ドリンク <span style={{ fontSize: '1rem', color: '#555', fontWeight: 'normal' }}>([2]で完了)</span>
           </h3>
           {drinkQueue.length === 0 && <p>注文はありません</p>}
           {drinkQueue.map((order, index) => (
             <div key={`drink-${order.id}`} style={{ background: index === 0 ? '#bbdefb' : 'white', padding: '15px', marginBottom: '15px', borderRadius: '8px', border: index === 0 ? '3px solid #1976d2' : '1px solid #ccc', boxShadow: '0 2px 5px rgba(0,0,0,0.1)' }}>
               
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', color: '#555', flexWrap: 'wrap', gap: '5px' }}>
-                <strong style={{ minWidth: '60px', fontSize: '0.9rem' }}>{index === 0 ? '▶ 最優先' : ''}</strong>
-                <span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1976d2', border: '2px solid #1976d2', padding: '2px 8px', borderRadius: '4px', background: '#fff' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', color: '#555' }}>
+                <strong style={{ minWidth: '70px' }}>{index === 0 ? '▶ 最優先' : ''}</strong>
+                <span style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#1976d2', border: '2px solid #1976d2', padding: '2px 10px', borderRadius: '4px', background: '#fff' }}>
                   No: {order.ticket_number || 'なし'}
                 </span>
-                <span style={{ fontSize: '0.9rem' }}>{new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                <span>{new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
               </div>
               
-              <ul style={{ fontSize: '1.2rem', fontWeight: 'bold', listStyle: 'none', padding: 0 }}>
+              <ul style={{ fontSize: '1.3rem', fontWeight: 'bold', listStyle: 'none', padding: 0 }}>
                 {order.items.filter(item => item.category === 'ドリンク').map((item, i) => (
                   <li key={i} style={{ marginBottom: '8px' }}>{item.name} <span style={{ color: '#1976d2', marginLeft: '10px' }}>× {item.quantity}</span></li>
                 ))}
               </ul>
-              <button onClick={() => completeDrink(order.id)} style={{ width: '100%', padding: '12px', background: '#1976d2', color: 'white', border: 'none', borderRadius: '6px', fontSize: '1.1rem', cursor: 'pointer', marginTop: '10px' }}>
+              <button onClick={() => completeDrink(order.id)} style={{ width: '100%', padding: '12px', background: '#1976d2', color: 'white', border: 'none', borderRadius: '6px', fontSize: '1.2rem', cursor: 'pointer', marginTop: '10px' }}>
                 提供完了 (2)
               </button>
             </div>

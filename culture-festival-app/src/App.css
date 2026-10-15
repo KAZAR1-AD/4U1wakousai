@@ -182,3 +182,53 @@
     border-right-color: var(--border);
   }
 }
+
+/* src/index.css の一番下に追加してください */
+
+/* --- PC・タブレット用の基本レイアウト（横並び） --- */
+.app-container {
+  display: flex;
+  gap: 30px;
+  font-family: sans-serif;
+}
+
+/* レジ画面：左側（PCでは独立してスクロール可能にする） */
+.register-left {
+  flex: 2;
+  height: 85vh;
+  overflow-y: auto;
+  padding-right: 10px;
+}
+
+/* レジ画面：右側カート（PCでは右にピタッと固定する） */
+.register-right {
+  flex: 1;
+  min-width: 300px;
+  height: fit-content;
+  position: sticky;
+  top: 20px;
+}
+
+/* 調理場：左右を均等に分ける */
+.kitchen-col {
+  flex: 1;
+}
+
+/* --- スマホ用（画面幅が768px以下のときだけ適用されるルール） --- */
+@media (max-width: 768px) {
+  .app-container {
+    flex-direction: column; /* 縦並びに変更 */
+    gap: 20px;
+  }
+  .register-left {
+    flex: none;
+    height: auto; /* スマホではページ全体でスクロールするように変更 */
+    overflow-y: visible;
+    padding-right: 0;
+  }
+  .register-right {
+    flex: none;
+    position: static; /* 固定を解除 */
+    min-width: auto;
+  }
+}
