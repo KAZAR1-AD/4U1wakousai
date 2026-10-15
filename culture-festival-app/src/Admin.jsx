@@ -10,17 +10,16 @@ export default function Admin({ userLevel }) {
   const [newPassword, setNewPassword] = useState('');
   const [newProductName, setNewProductName] = useState('');
   const [newProductPrice, setNewProductPrice] = useState('');
+  const [newProductCategory, setNewProductCategory] = useState('ダーツ');
 
   useEffect(() => {
     fetchData();
   }, [userLevel]);
 
   const fetchData = async () => {
-    // ダーツデータの取得
     const { data: scoreData } = await supabase.from('darts_scores').select('*').order('score', { ascending: false });
     if (scoreData) setScores(scoreData);
 
-    // 管理者(Lv3)の場合、注文履歴と商品設定データも取得
     if (userLevel === 3) {
       const { data: orderData } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
       if (orderData) setOrders(orderData);
@@ -42,10 +41,13 @@ export default function Admin({ userLevel }) {
     fetchData();
   };
 
-  // 商品の追加と削除
   const addProduct = async () => {
-    if (!newProductName || !newProductPrice) return;
-    await supabase.from('products').insert([{ name: newProductName, price: parseInt(newProductPrice, 10) }]);
+    if (!newProductName || !newProductPrice || !newProductCategory) return;
+    await supabase.from('products').insert([{ 
+      name: newProductName, 
+      price: parseInt(newProductPrice, 10),
+      category: newProductCategory
+    }]);
     setNewProductName('');
     setNewProductPrice('');
     fetchData();
@@ -76,19 +78,27 @@ export default function Admin({ userLevel }) {
       
       <div style={{ display: 'flex', gap: '30px', marginTop: '20px', flexWrap: 'wrap' }}>
         
-        {/* レジ 商品設定エリア (レベル3のみ) */}
         {userLevel === 3 && (
           <div style={{ flex: 1, minWidth: '350px', background: '#fff9c4', padding: '20px', borderRadius: '8px' }}>
             <h3>レジ メニュー設定</h3>
-            <div style={{ display: 'flex', gap: '5px', marginBottom: '15px' }}>
+            <div style={{ display: 'flex', gap: '5px', marginBottom: '15px', flexWrap: 'wrap' }}>
+              <select 
+                value={newProductCategory} 
+                onChange={e => setNewProductCategory(e.target.value)} 
+                style={{ flex: 1, padding: '8px' }}
+              >
+                <option value="ダーツ">ダーツ</option>
+                <option value="フード">フード</option>
+                <option value="ドリンク">ドリンク</option>
+              </select>
               <input type="text" placeholder="商品名" value={newProductName} onChange={e => setNewProductName(e.target.value)} style={{ flex: 2, padding: '8px' }} />
-              <input type="number" placeholder="価格(円)" value={newProductPrice} onChange={e => setNewProductPrice(e.target.value)} style={{ flex: 1, padding: '8px' }} />
+              <input type="number" placeholder="価格" value={newProductPrice} onChange={e => setNewProductPrice(e.target.value)} style={{ flex: 1, padding: '8px' }} />
               <button onClick={addProduct} style={{ background: '#4CAF50', color: 'white', border: 'none', padding: '0 15px', cursor: 'pointer' }}>追加</button>
             </div>
             <ul style={{ listStyle: 'none', padding: 0 }}>
               {products.map(p => (
                 <li key={p.id} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', background: 'white', padding: '10px', borderRadius: '4px' }}>
-                  <span>{p.name} - {p.price}円</span>
+                  <span>[{p.category || '未分類'}] {p.name} - {p.price}円</span>
                   <button onClick={() => deleteProduct(p.id)} style={{ background: '#d32f2f', color: 'white', border: 'none', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer' }}>削除</button>
                 </li>
               ))}
@@ -96,7 +106,6 @@ export default function Admin({ userLevel }) {
           </div>
         )}
 
-        {/* ダーツ管理エリア (共通) */}
         <div style={{ flex: 1, minWidth: '300px', background: '#f5f5f5', padding: '20px', borderRadius: '8px' }}>
           <h3>ダーツ スコア管理</h3>
           <ul style={{ listStyle: 'none', padding: 0 }}>
@@ -109,7 +118,6 @@ export default function Admin({ userLevel }) {
           </ul>
         </div>
 
-        {/* 注文管理エリア (レベル3のみ) */}
         {userLevel === 3 && (
           <div style={{ flex: 1, minWidth: '300px', background: '#f5f5f5', padding: '20px', borderRadius: '8px' }}>
             <h3>レジ 注文履歴</h3>
@@ -124,7 +132,6 @@ export default function Admin({ userLevel }) {
           </div>
         )}
 
-        {/* パスワード変更エリア (共通) */}
         <div style={{ flex: 1, minWidth: '300px', background: '#e3f2fd', padding: '20px', borderRadius: '8px' }}>
           <h3>アカウント設定</h3>
           <div style={{ display: 'flex', gap: '10px' }}>
