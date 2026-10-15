@@ -67,7 +67,7 @@ export default function ScoreEntry() {
 
   return (
     <div style={{ padding: '30px', maxWidth: '400px', margin: '0 auto', fontFamily: 'sans-serif' }}>
-      <h2 style={{ textAlign: 'center', marginBottom: '20px' }}>スコア入力</h2>
+      <h2 style={{ textAlign: 'center', marginBottom: '20px' }}>カウントアップのスコアを入力してください</h2>
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
         <div>
           <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>プレイヤー名</label>

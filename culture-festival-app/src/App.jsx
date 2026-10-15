@@ -30,7 +30,7 @@ export default function App() {
   const determineUserLevel = (user) => {
     if (!user) {
       setUserLevel(1);
-    } else if (user.email === 'kimura@fes.com' || user.email === 'teacher@fes.com') { 
+    } else if (user.email === 'x23u021@mitsuhashi.ac.jp' || user.email === 'x23u035@mitsuhashi.ac.jp') { 
       setUserLevel(3);
     } else {
       setUserLevel(2);
