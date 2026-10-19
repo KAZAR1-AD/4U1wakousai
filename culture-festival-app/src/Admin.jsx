@@ -1,16 +1,23 @@
 // src/Admin.jsx
 import { useState, useEffect } from 'react';
 import { supabase } from './lib/supabase';
+import AccountingModal from './AccountingModal';
 
 export default function Admin({ userLevel }) {
   const [scores, setScores] = useState([]);
   const [orders, setOrders] = useState([]);
   const [products, setProducts] = useState([]);
-  
+  const [closings, setClosings] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   const [newPassword, setNewPassword] = useState('');
   const [newProductName, setNewProductName] = useState('');
   const [newProductPrice, setNewProductPrice] = useState('');
+  const [newCostPrice, setNewCostPrice] = useState('');
   const [newProductCategory, setNewProductCategory] = useState('ダーツ');
+
+  const [actualCashInput, setActualCashInput] = useState('');
+  const [fixedExpenses, setFixedExpenses] = useState('0');
 
   useEffect(() => {
     fetchData();
@@ -26,6 +33,9 @@ export default function Admin({ userLevel }) {
 
       const { data: productData } = await supabase.from('products').select('*').order('created_at', { ascending: true });
       if (productData) setProducts(productData);
+
+      const { data: closingData } = await supabase.from('register_closings').select('*').order('created_at', { ascending: false });
+      if (closingData) setClosings(closingData);
     }
   };
 
@@ -50,6 +60,7 @@ export default function Admin({ userLevel }) {
     }]);
     setNewProductName('');
     setNewProductPrice('');
+    setNewCostPrice('');
     fetchData();
   };
 
@@ -69,12 +80,108 @@ export default function Admin({ userLevel }) {
     }
   };
 
+  const lastClosingTime = closings.length > 0 ? new Date(closings[0].created_at) : new Date(0);
+  const currentUnclosedOrders = orders.filter(o => new Date(o.created_at) > lastClosingTime);
+
+  const currentSalesTotal = currentUnclosedOrders.reduce((sum, o) => {
+    const orderTotal = o.items ? o.items.reduce((s, i) => s + (i.price * i.quantity), 0) : 0;
+    return sum + orderTotal;
+  }, 0);
+
+  const currentItemSummary = {};
+  const currentStaffSummary = {};
+
+  currentUnclosedOrders.forEach(o => {
+    const staff = o.created_by || '未記録';
+    const orderTotal = o.items ? o.items.reduce((s, i) => s + (i.price * i.quantity), 0) : 0;
+    currentStaffSummary[staff] = (currentStaffSummary[staff] || 0) + orderTotal;
+
+    if (o.items) {
+      o.items.forEach(item => {
+        if (!currentItemSummary[item.name]) currentItemSummary[item.name] = { quantity: 0, amount: 0 };
+        currentItemSummary[item.name].quantity += item.quantity;
+        currentItemSummary[item.name].amount += item.price * item.quantity;
+      });
+    }
+  });
+
+  let grandTotalSales = 0;
+  let grandTotalCost = 0;
+  const grandItemSummary = {};
+
+  orders.forEach(o => {
+    if (o.items) {
+      o.items.forEach(item => {
+        const itemSales = item.price * item.quantity;
+        const prodMatch = products.find(p => p.name === item.name);
+        const unitCost = prodMatch ? (prodMatch.cost_price || 0) : 0;
+        const itemCost = unitCost * item.quantity;
+
+        grandTotalSales += itemSales;
+        grandTotalCost += itemCost;
+
+        if (!grandItemSummary[item.name]) grandItemSummary[item.name] = { quantity: 0, amount: 0 };
+        grandItemSummary[item.name].quantity += item.quantity;
+        grandItemSummary[item.name].amount += itemSales;
+      });
+    }
+  });
+
+  const grossProfit = grandTotalSales - grandTotalCost;
+  const finalProfit = grossProfit - (parseInt(fixedExpenses, 10) || 0);
+
+  const handleRegisterClose = async () => {
+    if (actualCashInput === '') return alert('手元のレジ現金を入力してください。');
+
+    const { data: { user } } = await supabase.auth.getUser();
+    const actualCash = parseInt(actualCashInput, 10);
+    const diff = actualCash - currentSalesTotal;
+
+    const { error } = await supabase.from('register_closings').insert([{
+      closed_by: user?.email || 'unknown',
+      start_time: lastClosingTime.toISOString(),
+      end_time: new Date().toISOString(),
+      total_sales: currentSalesTotal,
+      expected_cash: currentSalesTotal,
+      actual_cash: actualCash,
+      difference: diff
+    }]);
+
+    if (error) {
+      alert('エラーが発生しました: ' + error.message);
+    } else {
+      alert(`レジ締めを記録しました！ (売上: ${currentSalesTotal}円 / 違算: ${diff}円)`);
+      setActualCashInput('');
+      fetchData();
+    }
+  };
+
   return (
     <div style={{ padding: '20px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h2>管理画面 {userLevel === 3 ? '(管理者)' : '(一般スタッフ)'}</h2>
-        <button onClick={fetchData} style={{ padding: '8px 16px', cursor: 'pointer' }}>最新データを再取得</button>
+        
+        <div style={{ display: 'flex', gap: '10px' }}>
+          {userLevel === 3 && (
+            <button 
+              onClick={() => setIsModalOpen(true)} 
+              style={{ padding: '8px 16px', background: '#2e7d32', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+            >
+              💵 会計集計ポップアップを開く
+            </button>
+          )}
+          <button onClick={fetchData} style={{ padding: '8px 16px', cursor: 'pointer' }}>最新データを再取得</button>
+        </div>
       </div>
+      
+      <AccountingModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        orders={orders} 
+        products={products} 
+        closings={closings} 
+        fetchData={fetchData} 
+      />
       
       <div style={{ display: 'flex', gap: '30px', marginTop: '20px', flexWrap: 'wrap' }}>
         
