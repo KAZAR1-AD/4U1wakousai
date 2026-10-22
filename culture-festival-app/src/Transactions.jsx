@@ -38,7 +38,8 @@ export default function Transactions({ onClose }) {
   const exportCsv = () => {
     if (orders.length === 0) return alert('出力するデータがありません');
     
-    const headers = ['注文ID', '整理券番号', '日時', 'ステータス', '注文内容', '合計点数', '合計金額(円)'];
+    // ヘッダーに「担当スタッフ」を追加
+    const headers = ['注文ID', '整理券番号', '日時', '担当スタッフ', 'ステータス', '注文内容', '合計点数', '合計金額(円)'];
     const escape = (val) => `"${String(val ?? '').replace(/"/g, '""')}"`;
     
     const rows = orders.map(o => {
@@ -52,6 +53,7 @@ export default function Transactions({ onClose }) {
         o.id,
         o.ticket_number || '',
         dateStr,
+        o.created_by || '不明（未記録）', // 担当スタッフの情報を出力
         o.status === 'completed' ? '提供済' : '未調理',
         itemsStr,
         totalQty,
@@ -104,11 +106,12 @@ export default function Transactions({ onClose }) {
       </div>
 
       <div style={{ background: 'white', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '800px' }}>
           <thead style={{ background: '#e0e0e0' }}>
             <tr>
               <th style={{ padding: '12px', borderBottom: '2px solid #bdbdbd' }}>日時</th>
               <th style={{ padding: '12px', borderBottom: '2px solid #bdbdbd' }}>整理券</th>
+              <th style={{ padding: '12px', borderBottom: '2px solid #bdbdbd' }}>担当スタッフ</th> {/* 追加 */}
               <th style={{ padding: '12px', borderBottom: '2px solid #bdbdbd' }}>ステータス</th>
               <th style={{ padding: '12px', borderBottom: '2px solid #bdbdbd' }}>注文内容</th>
               <th style={{ padding: '12px', borderBottom: '2px solid #bdbdbd' }}>金額</th>
@@ -117,21 +120,30 @@ export default function Transactions({ onClose }) {
           </thead>
           <tbody>
             {isLoading ? (
-              <tr><td colSpan="6" style={{ padding: '20px', textAlign: 'center' }}>読み込み中...</td></tr>
+              <tr><td colSpan="7" style={{ padding: '20px', textAlign: 'center' }}>読み込み中...</td></tr>
             ) : orders.length === 0 ? (
-              <tr><td colSpan="6" style={{ padding: '20px', textAlign: 'center', color: '#757575' }}>取引記録がありません</td></tr>
+              <tr><td colSpan="7" style={{ padding: '20px', textAlign: 'center', color: '#757575' }}>取引記録がありません</td></tr>
             ) : (
               orders.map(o => {
                 const items = Array.isArray(o.items) ? o.items : [];
                 const totalAmount = items.reduce((sum, i) => sum + (Number(i.price || 0) * Number(i.quantity || 1)), 0);
                 
+                // アカウント名（メールアドレス）が長い場合は短く表示する処理
+                const staffName = o.created_by ? o.created_by.split('@')[0] : '不明';
+
                 return (
                   <tr key={o.id} style={{ borderBottom: '1px solid #eeeeee' }}>
-                    <td style={{ padding: '12px' }}>{new Date(o.created_at).toLocaleString('ja-JP', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}</td>
+                    <td style={{ padding: '12px', whiteSpace: 'nowrap' }}>{new Date(o.created_at).toLocaleString('ja-JP', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}</td>
                     <td style={{ padding: '12px', fontWeight: 'bold', color: '#1565c0' }}>{o.ticket_number || '-'}</td>
+                    
+                    {/* 担当スタッフ列 */}
+                    <td style={{ padding: '12px', color: '#555' }}>
+                      <span title={o.created_by}>{staffName}</span>
+                    </td>
+
                     <td style={{ padding: '12px' }}>
                       <span style={{ 
-                        padding: '4px 8px', borderRadius: '12px', fontSize: '12px',
+                        padding: '4px 8px', borderRadius: '12px', fontSize: '12px', whiteSpace: 'nowrap',
                         background: o.status === 'completed' ? '#c8e6c9' : '#ffcc80',
                         color: o.status === 'completed' ? '#2e7d32' : '#ef6c00'
                       }}>
@@ -143,11 +155,11 @@ export default function Transactions({ onClose }) {
                         <div key={idx}>{item.name} × {item.quantity}</div>
                       ))}
                     </td>
-                    <td style={{ padding: '12px', fontWeight: 'bold' }}>¥{totalAmount.toLocaleString()}</td>
+                    <td style={{ padding: '12px', fontWeight: 'bold', whiteSpace: 'nowrap' }}>¥{totalAmount.toLocaleString()}</td>
                     <td style={{ padding: '12px' }}>
                       <button 
                         onClick={() => deleteOrder(o.id)}
-                        style={{ padding: '6px 12px', background: '#d32f2f', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                        style={{ padding: '6px 12px', background: '#d32f2f', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', whiteSpace: 'nowrap' }}
                       >
                         削除
                       </button>
