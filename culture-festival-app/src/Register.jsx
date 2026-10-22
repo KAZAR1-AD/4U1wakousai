@@ -41,6 +41,8 @@ export default function Register() {
     if (isSubmitDisabled) return;
     setIsSubmitting(true);
 
+
+    const { data: { user } } = await supabase.auth.getUser();
     const hasFood = cart.some(item => item.category === 'フード');
     const hasDrink = cart.some(item => item.category === 'ドリンク');
 
@@ -49,7 +51,8 @@ export default function Register() {
       status: 'pending',
       food_status: hasFood ? 'pending' : 'none',
       drink_status: hasDrink ? 'pending' : 'none',
-      ticket_number: requiresTicket ? ticketNumber : null
+      ticket_number: requiresTicket ? ticketNumber : null,
+      created_by: user?.email || 'unknown'
     }]);
 
     if (error) {
