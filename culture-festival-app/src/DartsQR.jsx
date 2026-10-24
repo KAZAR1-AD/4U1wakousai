@@ -60,11 +60,6 @@ export default function DartsQR() {
         {qrUrl ? (
           <>
             <QRCodeCanvas value={qrUrl} size={300} />
-            <div style={{ marginTop: '20px' }}>
-              <a href={qrUrl} target="_blank" rel="noopener noreferrer" style={{ color: '#1976d2', textDecoration: 'underline', fontSize: '1.2rem' }}>
-                PCでテスト画面を開く
-              </a>
-            </div>
           </>
         ) : (
           <p style={{ fontSize: '1.2rem' }}>QRコード生成中...</p>
