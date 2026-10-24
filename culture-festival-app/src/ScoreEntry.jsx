@@ -41,9 +41,16 @@ export default function ScoreEntry() {
     e.preventDefault();
     if (!playerName || !score) return;
 
+    // 不正な値が送信されないよう送信前にもチェックを追加
+    const parsedScore = parseInt(score, 10);
+    if (parsedScore < 0 || parsedScore > 1440) {
+      alert('スコアは0から1440の間で入力してください。');
+      return;
+    }
+
     const { error } = await supabase
       .from('darts_scores')
-      .insert([{ player_name: playerName, score: parseInt(score, 10) }]);
+      .insert([{ player_name: playerName, score: parsedScore }]);
 
     if (!error) {
       alert('スコアを登録しました！');
@@ -83,8 +90,24 @@ export default function ScoreEntry() {
           <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>スコア</label>
           <input 
             type="number" 
+            min="0"
+            max="1440"
             value={score} 
-            onChange={(e) => setScore(e.target.value)} 
+            onChange={(e) => {
+              let val = e.target.value;
+              // 空欄の場合はそのまま反映
+              if (val === '') {
+                setScore('');
+                return;
+              }
+              
+              // 入力値が1440を超えたら1440に、0未満なら0に自動補正
+              let num = parseInt(val, 10);
+              if (num > 1440) num = 1440;
+              if (num < 0) num = 0;
+              
+              setScore(num.toString());
+            }} 
             style={{ width: '100%', padding: '10px', boxSizing: 'border-box', fontSize: '1.1rem' }} 
             required 
           />
